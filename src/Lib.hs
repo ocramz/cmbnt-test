@@ -23,6 +23,11 @@ classify cs v = (betaV <.> v + beta0) > 0 where
   betaV = V2 (bx cs) (by cs)
   beta0 = b0 cs
 
+-- | Classify a batch of points with some binary point classifier
+classifyBatchWith :: (V2 a -> Bool) -> Batch a -> Pred
+classifyBatchWith classf bs = Pred $ map classf (batch bs)
+
+
 
 -- | Decode a CSV document as coefficients (used for debugging)
 decodeCoeffs :: BS.ByteString -> Either String (Coeffs Double)
@@ -53,6 +58,11 @@ instance J.ToJSON a => J.ToJSON (V2 a)
 -- Just (Batch {batch = [V2 2.0 3.3,V2 1.0 2.0]})
 newtype Batch a = Batch { batch :: [V2 a]} deriving (Eq, Show, Generic)
 instance J.FromJSON a => J.FromJSON (Batch a)
+
+newtype Pred = Pred { prediction :: [Bool]} deriving (Eq, Show, Generic)
+instance J.ToJSON Pred
+
+
 
 
 

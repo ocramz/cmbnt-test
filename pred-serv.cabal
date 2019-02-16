@@ -33,6 +33,7 @@ executable pred-serv
   main-is:             Main.hs
   build-depends:       base
                      , pred-serv
+                     , aeson
                      , bytestring
                      , scotty
                      , text
