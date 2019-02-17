@@ -54,8 +54,7 @@ test-suite spec
                      , bytestring
                      , vector
                      , hspec
-                     , QuickCheck
 
 source-repository head
   type:     git
-  location: https://github.com/ocramz/pred-serv
+  location: https://github.com/ocramz/cmbnt-test

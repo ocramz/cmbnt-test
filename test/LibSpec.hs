@@ -1,7 +1,6 @@
 module LibSpec where
 
 import Test.Hspec
--- import Test.Hspec.QuickCheck
 
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.Vector as V
@@ -30,8 +29,6 @@ spec = do
       d <- BS.readFile "data/samples.csv"
       let sxs = decodeSamples d
       V.length <$> sxs `shouldBe` Right 10
-    -- prop "ourAdd is commutative" $ \x y ->
-    --   ourAdd x y `shouldBe` ourAdd y x
 
 vtest :: V2 Double
 vtest = V2 1.97 0.17
