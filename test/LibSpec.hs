@@ -22,12 +22,13 @@ spec =
     it "decodes data/model.csv" $ do
       d <- BS.readFile "data/model.csv"
       let cs = decodeCoeffs d
-      V.head <$> cs `shouldBe` Right Coeffs {bx = 1.155907258055184, by = -5.539862591450627, b0 = 0.8093445925050581}
+      cs `shouldBe` Right Coeffs {bx = 1.155907258055184, by = -5.539862591450627, b0 = 0.8093445925050581}
     it "decodes data/samples.csv" $ do
       d <- BS.readFile "data/samples.csv"
       let sxs = decodeSamples d
       V.length <$> sxs `shouldBe` Right 10
     -- prop "ourAdd is commutative" $ \x y ->
     --   ourAdd x y `shouldBe` ourAdd y x
+
 
 

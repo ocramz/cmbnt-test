@@ -1,6 +1,6 @@
-FROM scratch
+FROM alpine
 
-EXPOSE 8080
+EXPOSE 3000
 
 ADD dist/pred-serv pred-serv
 

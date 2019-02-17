@@ -4,7 +4,7 @@ packages:
 - .
 
 docker:
-  enable: false
+  enable: true
   image: ocramz/cmbnt-test-dev
 
 # extra-deps: []
