@@ -7,7 +7,7 @@ IMAGE=pred-serv:1.0
 
 # development Docker image 
 docker-dev-build:
-	docker build --no-cache=true -t ${IMAGE_DEV} docker/dev
+	docker build -t ${IMAGE_DEV} docker/dev
 
 docker-dev-login:
 	docker run -v ${ARTIFACTS_DIR}:/dist -it ${IMAGE_DEV} /bin/bash

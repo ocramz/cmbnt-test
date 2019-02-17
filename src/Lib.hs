@@ -1,13 +1,21 @@
-module Lib (classify, classifyBatchWith, coeffs0, V2(..), Coeffs(..), Sample(..), Batch(..), Pred(..), decodeSamples, decodeCoeffs, decodeJSONBatch) where
+module Lib (
+  -- * Classifying data
+  classify, classifyBatchWith, coeffs0
+  -- * Types
+  , V2(..), Coeffs(..), Sample(..), Batch(..), Pred(..)
+  -- * Decoding data
+  -- ** from CSV 
+  , decodeSamples, decodeCoeffs
+  -- ** from JSON 
+  , decodeJSONBatch
+  ) where
 
 import Lib.Types (V2(..), Coeffs(..), Sample(..), Batch(..), Pred(..))
 
 -- import qualified Data.Text as T
 -- import qualified Data.Text.IO as T (readFile)
 import qualified Data.ByteString.Lazy as BS
-
 import qualified Data.Vector as V
-
 import qualified Data.Aeson as J (decode)
 import Data.Csv (decode, HasHeader(..))
 

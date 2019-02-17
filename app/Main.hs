@@ -6,11 +6,14 @@ import qualified Data.Text.Lazy as T
 -- import qualified Data.ByteString.Lazy as BS
 -- import qualified Data.Vector as V
 -- import qualified Data.Aeson as J
+import Network.HTTP.Types.Status (status200)
 
-import Web.Scotty (scotty, ScottyM, get, post, param, text, json, jsonData)
+import Web.Scotty (scotty, ScottyM, get, post, param, html, text, json, jsonData, status, raise)
 
 main :: IO ()
 main = scotty 3000 $ do
+  hello
+  liveness
   oneShot
   batchProcess
 
@@ -33,3 +36,12 @@ batchProcess = post "/model/v1/batch" $ do
 -- | Binary classifier with hardcoded parameters
 clf0 :: V2 Double -> Bool
 clf0 = classify coeffs0
+
+
+-- | Liveness endpoint
+liveness :: ScottyM ()
+liveness = get "/liveness" $ status status200
+
+hello = get "/" $ do
+  status status200
+  html "<h1>Hello! </h1>"
