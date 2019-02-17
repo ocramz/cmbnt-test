@@ -1,7 +1,5 @@
 # pred-serv
 
-[![Build Status](https://travis-ci.org/ocramz/cmbnt-test.png)](https://travis-ci.org/ocramz/cmbnt-test)
-
 # Dependencies
 
 * `stack` (https://docs.haskellstack.org/en/stable/README/)
@@ -22,7 +20,7 @@ Write down the IP address produced by `docker-machine env`; this will be necessa
 
 First thing, make sure that `docker.enable` is set to `true` in the `stack.yaml` configuration file. This ensures that the project is built against in an Alpine Linux container, since the deployment image will be based on this Linux distribution as well.
 
-Build the development image, the project and the deployment image:
+Build the development image and the project, test the project and build the deployment image:
 
 
     $ make all
@@ -42,7 +40,7 @@ At this point `docker images` should list three new images:
 
     $ make docker-deploy-run
 
-will start a HTTP webserver at `${DOCKER_IP}:3000`.
+will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will not log anything to console, and can be stopped with Control-C (i.e. SIGINT).
 
 ## REST endpoints
 

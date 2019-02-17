@@ -8,10 +8,11 @@ import qualified Data.Text.Lazy as T
 -- import qualified Data.Aeson as J
 import Network.HTTP.Types.Status (status200)
 
-import Web.Scotty (scotty, ScottyM, get, post, param, html, text, json, jsonData, status, raise)
+import Web.Scotty (scottyOpts, Options(..), ScottyM, get, post, param, html, text, json, jsonData, status, raise)
+import Network.Wai.Handler.Warp (defaultSettings)
 
 main :: IO ()
-main = scotty 3000 $ do
+main = scottyOpts (Options { verbose = 0, settings = defaultSettings}) $ do 
   hello
   liveness
   oneShot
@@ -42,6 +43,8 @@ clf0 = classify coeffs0
 liveness :: ScottyM ()
 liveness = get "/liveness" $ status status200
 
+-- | Homepage
+hello :: ScottyM ()
 hello = get "/" $ do
   status status200
   html "<h1>Hello! </h1>"
