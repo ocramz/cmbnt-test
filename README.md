@@ -4,13 +4,15 @@
 
 # Dependencies
 
-* stack (https://docs.haskellstack.org/en/stable/README/)
-* docker
+* `stack` (https://docs.haskellstack.org/en/stable/README/)
+* `docker`
 
 # Building
 
 * Build the development docker image :
 
-    $ make docker-dev
+
+     $ make docker-dev
+
 
 * TODO
