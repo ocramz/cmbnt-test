@@ -1,6 +1,6 @@
 # pred-serv
 
-[![Build Status](https://travis-ci.org/ocramz/pred-serv.png)](https://travis-ci.org/ocramz/pred-serv)
+[![Build Status](https://travis-ci.org/ocramz/cmbnt-test.png)](https://travis-ci.org/ocramz/cmbnt-test)
 
 # Dependencies
 
@@ -46,7 +46,7 @@ will start a HTTP webserver at `${DOCKER_IP}:3000`.
 
 ## REST endpoints
 
-* Liveness : the `/liveness` endpoint replies with 200 OK if prediction server is online.
+* Liveness : the `/liveness` endpoint replies with 200 OK if the prediction server is online.
 
 * The one-shot prediction endpoint is queried via GET query parameters; the `x` and `y` parameters are the query coordinates, e.g. : 
 
