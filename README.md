@@ -34,13 +34,13 @@ At this point `docker images` should list three new images:
 
 * `ocramz/cmbnt-test-dev` : the development image with build tools etc. (1.1 GB)
 
-* `pred-serv:1.0` : the image ready to be deployed (around 22 MB)
+* `pred-serv:1.0` : the prediction server image ready to be deployed (around 22 MB)
 
 
 # Running
 
 
-    $ `make docker-deploy-run`
+    $ make docker-deploy-run
 
 will start a HTTP webserver at `${DOCKER_IP}:3000`.
 
@@ -50,11 +50,11 @@ will start a HTTP webserver at `${DOCKER_IP}:3000`.
 
 * The one-shot prediction endpoint is queried via GET query parameters; the `x` and `y` parameters are the query coordinates, e.g. : 
 
-    /model/v1/one-shot/?x=<point_x>&y=<point_y>
+    `/model/v1/one-shot/?x=<point_x>&y=<point_y>`
 
 * The batch endpoint is queried by passing the query points as a JSON object in the body of a POST request:
 
-    /model/v1/batch/
+    `/model/v1/batch/`
 
 Each query point in the batch is represented as a list of floating point numbers, for example:
 
