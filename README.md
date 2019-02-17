@@ -39,8 +39,7 @@ At this point `docker images` should list three new images:
 
 # Running
 
-
-    $ make docker-deploy-run
+    $ docker run -p 3000:3000 -it pred-serv:1.0
 
 will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will not log anything to console, and can be stopped with Control-C (i.e. SIGINT).
 
@@ -77,3 +76,35 @@ NB: since the internal model is restricted to classifying points in 2D, lists th
     $ stack haddock
 
 the path to the documentation index page can be found after the line `Updating Haddock index for local packages in` in the stack haddock log.
+
+
+# Project structure
+
+  $ tree
+  .
+  |-- LICENSE
+  |-- Makefile
+  |-- README.md
+  |-- Setup.hs
+  |-- analysis
+  |   `-- plot_samples.R
+  |-- app
+  |   `-- Main.hs
+  |-- data
+  |   |-- model.csv
+  |   `-- samples.csv
+  |-- docker
+  |   |-- deploy
+  |   |   |-- Dockerfile
+  |   |   `-- pred-serv
+  |   `-- dev
+  |       `-- Dockerfile
+  |-- pred-serv.cabal
+  |-- src
+  |   |-- Lib
+  |   |   `-- Types.hs
+  |   `-- Lib.hs
+  |-- stack.yaml
+  `-- test
+      |-- LibSpec.hs
+      `-- Spec.hs
