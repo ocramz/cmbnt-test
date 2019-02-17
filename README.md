@@ -80,31 +80,40 @@ the path to the documentation index page can be found after the line `Updating H
 
 # Project structure
 
-  $ tree
-  .
-  |-- LICENSE
-  |-- Makefile
-  |-- README.md
-  |-- Setup.hs
-  |-- analysis
-  |   `-- plot_samples.R
-  |-- app
-  |   `-- Main.hs
-  |-- data
-  |   |-- model.csv
-  |   `-- samples.csv
-  |-- docker
-  |   |-- deploy
-  |   |   |-- Dockerfile
-  |   |   `-- pred-serv
-  |   `-- dev
-  |       `-- Dockerfile
-  |-- pred-serv.cabal
-  |-- src
-  |   |-- Lib
-  |   |   `-- Types.hs
-  |   `-- Lib.hs
-  |-- stack.yaml
-  `-- test
-      |-- LibSpec.hs
-      `-- Spec.hs
+
+    |-- LICENSE
+    |-- Makefile
+    |-- README.md
+    |-- Setup.hs
+    |-- analysis
+    |   `-- plot_samples.R
+    |-- app
+    |   `-- Main.hs
+    |-- data
+    |   |-- model.csv
+    |   `-- samples.csv
+    |-- docker
+    |   |-- deploy
+    |   |   |-- Dockerfile
+    |   |   `-- pred-serv
+    |   `-- dev
+    |       `-- Dockerfile
+    |-- pred-serv.cabal
+    |-- src
+    |   |-- Lib
+    |   |   `-- Types.hs
+    |   `-- Lib.hs
+    |-- stack.yaml
+    `-- test
+        |-- LibSpec.hs
+        `-- Spec.hs
+
+`src/` is the project source library, whereas the server implementation is in `app/`.
+
+`test/` contains only unit tests for now (in `LibSpec.hs`).
+
+`data/` contains the provided model parameters and labeled sample points.
+
+`docker/` contains the Dockerfiles for the development and deployment images. The statically-linked server binary meant to be deployed is copied in `docker/deploy`.
+
+`stack.yaml` and `pred-serv.cabal` are project files, containing dependency and configuration information.
