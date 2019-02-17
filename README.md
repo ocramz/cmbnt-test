@@ -28,7 +28,7 @@ Build the development image and the project, test the project and build the depl
     $ make all
 
 
-At this point `docker images` should list three new images:
+At this point `docker images` will list three new images:
 
 * `alpine` containing an installation of Alpine Linux (if this was not already present) (5.5 MB)
 
@@ -68,7 +68,7 @@ which will return
 
     {"prediction":[true,false,false]}
 
-NB: since the internal model is restricted to classifying points in 2D, lists that have more or less than 2 elements will produce a parse error.
+NB: since the internal model is restricted to classifying points in 2D, lists that have more or less than 2 elements will cause a parse error.
 
 # Building the HTML documentation
 
@@ -94,8 +94,7 @@ the path to the documentation index page can be found after the line `Updating H
     |   `-- samples.csv
     |-- docker
     |   |-- deploy
-    |   |   |-- Dockerfile
-    |   |   `-- pred-serv
+    |   |   `-- Dockerfile
     |   `-- dev
     |       `-- Dockerfile
     |-- pred-serv.cabal
@@ -112,7 +111,7 @@ the path to the documentation index page can be found after the line `Updating H
 
 `test/` contains only unit tests for now (in `LibSpec.hs`).
 
-`data/` contains the provided model parameters and labeled sample points.
+`data/` contains the default model parameters and a small labeled dataset.
 
 `docker/` contains the Dockerfiles for the development and deployment images. The statically-linked server binary meant to be deployed is copied in `docker/deploy`.
 
