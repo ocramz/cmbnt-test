@@ -1,6 +1,8 @@
 module Lib (
   -- * Classifying data
   classify, classifyBatchWith, coeffs0
+  -- ** Math
+  , (<.>)
   -- * Types
   , V2(..), Coeffs(..), Sample(..), Batch(..), Pred(..)
   -- * Decoding data
@@ -21,7 +23,7 @@ import Data.Csv (decode, HasHeader(..))
 
 
 
--- | Inner product
+-- | Inner product of two vectors
 (<.>) :: Num a => V2 a -> V2 a -> a
 V2 ux uy <.> V2 vx vy = ux*vx + uy*vy
 

@@ -6,10 +6,6 @@ import Test.Hspec
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.Vector as V
 
-
--- import qualified Data.Text as T
--- import qualified Data.Text.IO as T (readFile)
-
 import Lib 
 
 main :: IO ()
@@ -17,8 +13,15 @@ main = hspec spec
 
 
 spec :: Spec
-spec =
+spec = do
   describe "Lib" $ do
+    it "computes the inner product of two vectors" $ 
+      e1 <.> e2 `shouldBe` 0
+    it "correctly classifies provided data" $ do
+      d <- BS.readFile "data/model.csv"
+      let cs = either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeCoeffs d
+      classify cs vtest `shouldBe` True
+  describe "Lib/Types" $ do 
     it "decodes data/model.csv" $ do
       d <- BS.readFile "data/model.csv"
       let cs = decodeCoeffs d
@@ -30,5 +33,9 @@ spec =
     -- prop "ourAdd is commutative" $ \x y ->
     --   ourAdd x y `shouldBe` ourAdd y x
 
+vtest :: V2 Double
+vtest = V2 1.97 0.17
 
-
+e1, e2 :: V2 Double
+e1 = V2 1 0
+e2 = V2 0 1

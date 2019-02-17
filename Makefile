@@ -17,7 +17,7 @@ all:
 	make compile-static
 	make docker-deploy-build
 
-# 1) compile project as a statically-linked binary (~ 15 MB in size)
+# 1) compile project as a statically-linked binary and copy the executable in ${ARTIFACTS_DIR}
 compile-static:
 	stack install --test --local-bin-path ${ARTIFACTS_DIR} --ghc-options '-optl-static -fPIC -optc-Os'
 
