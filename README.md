@@ -1,5 +1,7 @@
 # pred-serv
 
+A little prediction server
+
 # Dependencies
 
 * `stack` (https://docs.haskellstack.org/en/stable/README/)
@@ -18,7 +20,7 @@ Write down the IP address produced by `docker-machine env`; this will be necessa
 
 # Building
 
-First thing, make sure that `docker.enable` is set to `true` in the `stack.yaml` configuration file. This ensures that the project is built against in an Alpine Linux container, since the deployment image will be based on this Linux distribution as well.
+First thing, make sure that `docker.enable` is set to `true` in the `stack.yaml` configuration file. This ensures that the project is built in an Alpine Linux container, since the deployment image will be based on this Linux distribution as well.
 
 Build the development image and the project, test the project and build the deployment image:
 

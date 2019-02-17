@@ -21,10 +21,11 @@ all:
 compile-static:
 	stack install --test --local-bin-path ${ARTIFACTS_DIR} --ghc-options '-optl-static -fPIC -optc-Os'
 
-# 2) build and tag a docker image with our
+# 2) build and tag the deployment docker image 
 docker-deploy-build:
 	docker build -t ${IMAGE} docker/deploy
 
+# Run the deployment container
 docker-deploy-run:
 	docker run -p 3000:3000 -it ${IMAGE}
 
