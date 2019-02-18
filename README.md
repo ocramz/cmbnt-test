@@ -47,7 +47,9 @@ will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will not log anyt
 
 * Liveness : the `/liveness` endpoint replies with 200 OK if the prediction server is online.
 
-### v1
+### v1 API
+
+The v1 API uses the default linear classifier with default coefficients.
 
 * The one-shot prediction endpoint is queried via GET query parameters; the `x` and `y` parameters are the query coordinates, e.g. : 
 
@@ -97,11 +99,13 @@ Example usage of the training endpoint :
     "clcClassifier":"QDA"
     }
 
+The current configuration can always be retrieved on the `GET /current-config/` endpoint
+
 Afterwards, the server can be queried in batch or one-shot mode just like with the v1 API on the corresponding endpoints :
 
-    model/v2/batch
+    POST model/v2/batch
 
-    model/v2/one-shot
+    GET model/v2/one-shot
 
 
 ## Local testing
@@ -126,6 +130,8 @@ The file path of the default training dataset can also be changed with a command
                                dataset (default: "data/samples.csv")
       -h,--help                Show this help text
 
+
+The unit tests are executed with `stack test`.
 
 # Building the HTML documentation
 
