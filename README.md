@@ -78,7 +78,7 @@ The `v2` API lets the user reconfigure the classifier at runtime, i.e. by provid
 
 For now, the only two classification methods supported are FDA (Fisher linear discriminant analysis) and QDA (quadratic discriminant analysis).
 
-* Example usage of the training endpoint :
+Example usage of the training endpoint :
 
     POST http://${DOCKER_IP}:3000/model/v2/train/
     {
@@ -99,9 +99,9 @@ For now, the only two classification methods supported are FDA (Fisher linear di
 
 Afterwards, the server can be queried in batch or one-shot mode just like with the v1 API on the corresponding endpoints :
 
-    `model/v2/batch`
+    model/v2/batch
 
-    `model/v2/one-shot`
+    model/v2/one-shot
 
 
 ## Local testing
