@@ -63,5 +63,6 @@ data ClassifierConfig = ClassifierConfig {
 instance J.ToJSON ClassifierConfig
 instance J.FromJSON ClassifierConfig
 
+-- | Default (empty) classifier config
 classifierConfigDefault :: ClassifierConfig
 classifierConfigDefault = ClassifierConfig [] FDA
