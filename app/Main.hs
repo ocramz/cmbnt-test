@@ -7,15 +7,16 @@ import qualified Data.ByteString.Lazy as BS
 
 import Control.Applicative (Alternative(..))
 
-import Control.Concurrent.STM (STM(..), TVar, newTVarIO, readTVarIO, modifyTVar', atomically)
+import qualified Options.Applicative as O (Parser, ParserInfo, execParser, info, helper, fullDesc, progDesc, header, strOption, metavar, help, long, short, showDefault, value)
+import Options.Applicative ((<**>))
+import Control.Concurrent.STM (TVar, newTVarIO, readTVarIO, modifyTVar', atomically)
 import Control.Monad.Reader (ReaderT(..), runReaderT, MonadReader(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Trans (MonadTrans(..))
 
-import Web.Scotty.Trans (Options(..), ScottyT, scottyT, scottyOptsT, middleware, get, text, post, status, html, jsonData, param, json)
+import Web.Scotty.Trans (Options(..), ScottyT, scottyOptsT, middleware, get, text, post, status, html, jsonData, param, json)
 import Network.Wai.Handler.Warp (defaultSettings)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
-
 import Network.HTTP.Types.Status (status200)
 
 import qualified Data.Vector as V
@@ -23,21 +24,39 @@ import qualified Data.Vector as V
 import Lib
 import Lib.Math
 
+-- | Command line options
+newtype CLIOpts = CO { coDatasetPath :: String }
+
+cliOptsParser :: O.Parser CLIOpts
+cliOptsParser = CO <$> O.strOption (
+  O.long "dataset-path" <>
+  O.short 'd' <>
+  O.metavar "PATH" <>
+  O.help "Path of the default training dataset" <>
+  O.showDefault <>
+  O.value "data/samples.csv"
+  )
+  
+cliopts :: O.ParserInfo CLIOpts
+cliopts = O.info (cliOptsParser <**> O.helper) (O.fullDesc <> O.progDesc "pred-serv - a little prediction server")
+
+-- | MAIN
 main :: IO ()
 main = do
-  sxs <- samples
+  (CO dpath) <- O.execParser cliopts 
+  sxs <- samples dpath
   c0 <- newTVarIO $ classifierConfigDefault { clcTrainingSet = sxs }
-  let opts = Options 0 defaultSettings
-  scottyOptsT opts (runApp c0) application
+  let sopts = Options 0 defaultSettings
+  scottyOptsT sopts (runApp c0) application
 
 -- | Load and parse the training samples from disk.
 --
 -- NB : the data file must be present
 --
 -- If the parse fails, the initial configuration will be empty
-samples :: IO [Sample]
-samples = do
-  ss <- BS.readFile "data/samples.csv"
+samples :: String -> IO [Sample]
+samples dpath = do
+  ss <- BS.readFile dpath -- "data/samples.csv"
   pure $ V.toList $ either (const V.empty) id $ decodeSamples ss  
 
 application :: ScottyT T.Text App ()
