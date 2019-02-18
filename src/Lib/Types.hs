@@ -5,12 +5,7 @@ import GHC.Generics
 import qualified Data.Aeson as J (FromJSON(..), ToJSON(..))
 import Data.Csv (FromField(..), FromRecord(..), (.!))
 
--- | Vector in 2d
-data V2 a = V2 a a deriving (Eq, Show, Generic)
-instance FromField a => FromRecord (V2 a) where
-  parseRecord v = V2 <$> v .! 0 <*> v .! 1
-instance J.FromJSON a => J.FromJSON (V2 a)
-instance J.ToJSON a => J.ToJSON (V2 a)
+import Lib.Math (V2)
 
 -- | Batch of input data vectors to be classified
 newtype Batch a = Batch { batch :: [V2 a]} deriving (Eq, Show, Generic)

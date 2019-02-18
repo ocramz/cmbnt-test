@@ -2,6 +2,7 @@
 module Main where
 
 import Lib
+import Lib.Math
 import qualified Data.Text.Lazy as T
 -- import qualified Data.ByteString.Lazy as BS
 -- import qualified Data.Vector as V
@@ -23,7 +24,7 @@ oneShot :: ScottyM ()
 oneShot = get "/model/v1/one-shot/:x:y" $ do
   x <- param "x"
   y <- param "y"
-  let v = V2 x y
+  let v = mkV2 x y
       c = clf0 v     
   text $ T.pack $ show c
 

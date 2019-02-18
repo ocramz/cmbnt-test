@@ -5,7 +5,8 @@ import Test.Hspec
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.Vector as V
 
-import Lib 
+import Lib
+import Lib.Math
 
 main :: IO ()
 main = hspec spec
@@ -29,10 +30,17 @@ spec = do
       d <- BS.readFile "data/samples.csv"
       let sxs = decodeSamples d
       V.length <$> sxs `shouldBe` Right 10
+  describe "Lib/Math" $ do 
+    it "computes the Fisher discriminant" $ do
+      d <- BS.readFile "data/samples.csv"
+      let sxs = either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeSamples d
+      print $ fisherDiscriminant sxs
+      True `shouldBe` True
+      
 
 vtest :: V2 Double
-vtest = V2 1.97 0.17
+vtest = mkV2 1.97 0.17
 
 e1, e2 :: V2 Double
-e1 = V2 1 0
-e2 = V2 0 1
+e1 = mkV2 1 0
+e2 = mkV2 0 1
