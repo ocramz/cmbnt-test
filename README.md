@@ -45,7 +45,7 @@ will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will not log anyt
 
 ## REST endpoints
 
-* Liveness : the `/liveness` endpoint replies with 200 OK if the prediction server is online.
+* Liveness : the `/liveness/` endpoint replies with 200 OK if the prediction server is online.
 
 ### v1 API
 
@@ -103,9 +103,9 @@ The current configuration can always be retrieved on the `GET /current-config/` 
 
 Afterwards, the server can be queried in batch or one-shot mode just like with the v1 API on the corresponding endpoints :
 
-    POST model/v2/batch
+    POST model/v2/batch/
 
-    GET model/v2/one-shot
+    GET model/v2/one-shot/
 
 
 ## Local testing

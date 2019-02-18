@@ -61,12 +61,10 @@ main = do
 
 -- | Load and parse the training samples from disk.
 --
--- NB : the data file must be present
---
 -- If the parse fails, the initial configuration will be empty
 samples :: String -> IO [Sample]
 samples dpath = do
-  ss <- BS.readFile dpath -- "data/samples.csv"
+  ss <- BS.readFile dpath 
   pure $ V.toList $ either (const V.empty) id $ decodeSamples ss  
 
 application :: ScottyT T.Text App ()
@@ -144,7 +142,7 @@ classifyDefault = get "/model/v1/one-shot/:x:y" $ do
       c = clf0 v     
   text $ T.pack $ show c
 
--- | Binary classifier with hardcoded parameters
+-- | Default binary classifier with hardcoded parameters
 clf0 :: V2 Double -> Bool
 clf0 = classify coeffs0
 

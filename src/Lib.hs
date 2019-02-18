@@ -16,7 +16,6 @@ module Lib (
   -- * Training a classifier
   , train
   -- ** Fisher linear discriminant (FDA)
-  -- , fisherDiscriminant
   , fda
   -- ** Quadratic discriminant analysis (QDA)
   , qda 
@@ -36,8 +35,6 @@ import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>)
 
 import Data.Ord (comparing)
 import Data.List (minimumBy)
--- import qualified Data.Text as T
--- import qualified Data.Text.IO as T (readFile)
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.Vector as V
 import qualified Data.Aeson as J (decode)
@@ -60,10 +57,11 @@ decodeJSONBatch :: BS.ByteString -> Maybe (Batch Double)
 decodeJSONBatch = J.decode 
 
 
--- | Provided model coefficients
+-- | Default model coefficients for the default linear classifier
 coeffs0 :: Coeffs Double
 coeffs0 = Coeffs 1.155907258055184 (-5.539862591450627) 0.8093445925050581
 
+-- | Default model coefficients for the default linear classifier (as a V2, disregarding the offset)
 vcoeffs0 :: V2 Double
 vcoeffs0 = mkV2 bx' by' where
   (Coeffs bx' by' _) = coeffs0
