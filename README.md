@@ -140,7 +140,7 @@ The unit tests are executed with `stack test`.
 
 the path to the documentation index page can be found after the line `Updating Haddock index for local packages in` in the stack haddock log.
 
-Apparently, this can only be run when `docker.enable` is set to `false` in stack.yaml . Once the documentation is built, a user can revert to `docker.enable = true` and build the docker images.
+Apparently, this can only be run when `docker.enable` is set to `false` in stack.yaml . Once the documentation is built, the user can revert to `docker.enable = true` and build the docker images as explained above.
 
 
 # Project structure
