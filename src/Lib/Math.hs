@@ -12,7 +12,7 @@ Portability : POSIX
 module Lib.Math (
   sampleCovariance, 
   -- * Vectors in 2D
-  V2, mkV2, (<.>), (^+^), (^-^), meanV2,
+  V2, mkV2, (<.>), (^+^), (^-^), meanV2, norm2, normalize2, 
   -- * (2 * 2) matrices
   Mat2, sumMat2, (##),
   -- * Matrix-vector operations
@@ -36,6 +36,14 @@ instance J.ToJSON a => J.ToJSON (V2 a)
 -- | Inner product of two vectors
 (<.>) :: Num a => V2 a -> V2 a -> a
 V2 ux uy <.> V2 vx vy = ux*vx + uy*vy
+
+-- | L2 norm of a vector
+norm2 :: Floating a => V2 a -> a
+norm2 v = sqrt $ v <.> v
+
+-- | Normalize a vector w.r.t its L2 norm
+normalize2 :: Floating a => V2 a -> V2 a
+normalize2 v = scaleV2 (recip z) v where z = norm2 v
 
 -- | Construct a 2D vector from its components
 mkV2 :: a -> a -> V2 a

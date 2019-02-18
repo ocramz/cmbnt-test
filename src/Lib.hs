@@ -9,12 +9,16 @@ Portability : POSIX
 -}
 module Lib (
   -- * Classifying data
-  classify, classifyBatchWith, coeffs0,
-  fisherDiscriminant
+  classify, classifyBatchWith
+  , fisherDiscriminant
+  , fda
+  , qda 
+  -- ** Preset coefficients
+  , coeffs0, vcoeffs0
   -- ** Math
   , (<.>)
   -- * Types
-  , V2, Coeffs(..), Sample(..), Batch(..), Pred(..)
+  , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..)
   -- * Decoding data
   -- ** from CSV 
   , decodeSamples, decodeCoeffs
@@ -23,9 +27,10 @@ module Lib (
   ) where
 
 import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..))
-import Lib.Math (V2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>), (^-^))
+import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>), (^-^))
 
-import Data.Either (partitionEithers)
+import Data.Ord (comparing)
+import Data.List (minimumBy)
 -- import qualified Data.Text as T
 -- import qualified Data.Text.IO as T (readFile)
 import qualified Data.ByteString.Lazy as BS
@@ -54,6 +59,10 @@ decodeJSONBatch = J.decode
 coeffs0 :: Coeffs Double
 coeffs0 = Coeffs 1.155907258055184 (-5.539862591450627) 0.8093445925050581
 
+vcoeffs0 :: V2 Double
+vcoeffs0 = mkV2 bx' by' where
+  (Coeffs bx' by' _) = coeffs0
+
 
 -- | Decode a CSV document as coefficients (used for debugging)
 decodeCoeffs :: BS.ByteString -> Either String (Coeffs Double)
@@ -64,19 +73,50 @@ decodeSamples :: BS.ByteString -> Either String (V.Vector Sample)
 decodeSamples = decode HasHeader 
 
 
--- | Fisher linear discriminant
---
--- Returns the direction of maximum separation between the two classes (i.e. the separating plane is orthogonal to this vector)
-fisherDiscriminant :: Foldable t => t Sample -> V2 Double
-fisherDiscriminant xs = (sig0 `sumMat2` sig1) <\> (mu1 ^-^ mu0) where
-  (xs0, xs1) = partitionSamples xs
-  mu0 = meanV2 xs0
-  mu1 = meanV2 xs1
-  sig0 = sampleCovariance xs0
-  sig1 = sampleCovariance xs1
+-- * Classification utilities
 
--- | Partition a labeled sample 
+-- | Classify a point according to QDA (Quadratic discriminant analysis) (with uniform class priors)
+--
+-- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the (class index, distance) of the closest cluster.
+--
+-- see Friedman 1989
+qda :: Foldable t => t Sample -> V2 Double -> (Bool, Double)
+qda xs x = minimumBy (comparing snd) $ zip [True, False] $ map (`mahalanobisDist` x) [xs0, xs1] where
+  (xs0, xs1) = partitionSamples xs  
+
+-- | Classify a point according to FDA (Fisher (linear) discriminant analysis)
+--
+-- Returns True if w^T x >= 0 where w is the Fisher vector
+fda :: Foldable t => t Sample -> V2 Double -> Bool
+fda xs x = w <.> x >= 0 where
+  w = fisherDiscriminant xs
+
+-- | Fisher linear discriminant analysis
+--
+-- Returns the direction of maximum separation between the two classes (i.e. the discriminating plane is orthogonal to the result vector)
+fisherDiscriminant :: Foldable t => t Sample -> V2 Double
+fisherDiscriminant xs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
+  (xs0, xs1) = partitionSamples xs
+  (mu0, sig0) = sampleStats xs0
+  (mu1, sig1) = sampleStats xs1
+
+-- | Mahalanobis distance (squared) between x and the mean vector of the dataset, as measured by the dataset covariance
+mahalanobisDist :: (Floating a, Foldable t) => t (V2 a) -> V2 a -> a
+mahalanobisDist xs x = xc <.> (sig <\> xc) where
+  (mu, sig) = sampleStats xs
+  xc = x ^-^ mu
+
+-- | Compute mean and covariance matrix of a dataset
+sampleStats :: (Fractional a, Foldable t) => t (V2 a) -> (V2 a, Mat2 a)
+sampleStats xs = (mu, sig) where
+  mu = meanV2 xs
+  sig = sampleCovariance xs
+    
+
+-- | Partition a labeled sample
+--
+-- If the label is True, a point goes in the left partition
 partitionSamples :: Foldable t => t Sample -> ([V2 Double], [V2 Double])
-partitionSamples xs = partitionEithers $ foldr insf [] xs where
-  insf (Sample ssx ssy lab) acc | lab       = Left (mkV2 ssx ssy) : acc
-                                | otherwise = Right (mkV2 ssx ssy) : acc
+partitionSamples xs = foldr insf ([], []) xs where
+  insf (Sample ssx ssy lab) (l, r) | lab       = (mkV2 ssx ssy : l, r)
+                                   | otherwise = (l, mkV2 ssx ssy : r)

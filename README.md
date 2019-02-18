@@ -100,6 +100,7 @@ the path to the documentation index page can be found after the line `Updating H
     |-- pred-serv.cabal
     |-- src
     |   |-- Lib
+    |   |   |-- Math.hs
     |   |   `-- Types.hs
     |   `-- Lib.hs
     |-- stack.yaml
@@ -107,7 +108,7 @@ the path to the documentation index page can be found after the line `Updating H
         |-- LibSpec.hs
         `-- Spec.hs
 
-`src/` is the project source library, whereas the server implementation is in `app/`.
+`src/` is the project source library. The server implementation is in `app/Main.hs`.
 
 `test/` contains only unit tests for now (in `LibSpec.hs`).
 
