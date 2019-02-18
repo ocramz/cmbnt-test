@@ -3,6 +3,7 @@
 module Main where
 
 import qualified Data.Text.Lazy as T
+import qualified Data.ByteString.Lazy as BS
 
 import Control.Applicative (Alternative(..))
 
@@ -17,6 +18,10 @@ import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 
 import Network.HTTP.Types.Status (status200)
 
+-- import qualified Data.Aeson as J (encode)
+
+import qualified Data.Vector as V
+
 import Lib
 import Lib.Math
 
@@ -30,9 +35,10 @@ main = do
 app2 :: ScottyT T.Text App ()
 app2 = do
   middleware logStdoutDev
-  get "/" $ do
-    cl <- app $ gets clcClassifier
-    text $ T.pack $ show cl
+  showInternalConfig
+  -- get "/" $ do
+  --   cl <- app $ gets clcClassifier
+  --   text $ T.pack $ show cl
 
 
 -- -- | Classify a single datum, provided as parameters to a GET endpoint
@@ -52,6 +58,21 @@ app2 = do
 --   let rs = classifyBatchWith clf0 js
 --   json rs
 
+-- showSamples :: ScottyT T.Text App ()
+-- showSamples = get "/internal/" $ do
+--   ss <- liftIO $ BS.readFile "data/samples.csv"
+--   json $ J.encode $ decodeSamples ss
+
+showInternalConfig :: ScottyT T.Text App ()
+showInternalConfig = get "/internal/" $ do
+  ss <- liftIO samples
+  json $ ClassifierConfig ss FDA
+
+samples :: IO [Sample]
+samples = do
+  ss <- BS.readFile "data/samples.csv"
+  pure $ V.toList $ either (const V.empty) id $ decodeSamples ss
+
 
 liveness :: ScottyT T.Text App ()
 liveness = get "/liveness" $ status status200
@@ -63,7 +84,7 @@ hello = get "/" $ do
 
 
 
--- | Our web application type
+-- | The type of our web application
 newtype App a = App {
   unApp :: ReaderT (TVar ClassifierConfig) IO a
   } deriving (Functor, Applicative, Alternative, Monad, MonadIO, MonadReader (TVar ClassifierConfig))
@@ -72,7 +93,7 @@ newtype App a = App {
 runApp :: TVar ClassifierConfig -> App a -> IO a
 runApp c0 a = runReaderT (unApp a) c0
 
--- |Scotty monads are layered on top of our custom monad.
+-- | Scotty monads are layered on top of our custom monad.
 --
 -- We define this synonym for lift in order to be explicit
 -- about when we are operating at the 'App' layer.

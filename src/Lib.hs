@@ -21,7 +21,7 @@ module Lib (
   -- ** Math
   , (<.>)
   -- * Types
-  , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierConfig(..), classifierConfigDefault
+  , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierMethod(..), ClassifierConfig(..), classifierConfigDefault
   -- * Decoding data
   -- ** from CSV 
   , decodeSamples, decodeCoeffs
@@ -29,7 +29,7 @@ module Lib (
   , decodeJSONBatch
   ) where
 
-import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierConfig(..), classifierConfigDefault)
+import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierMethod(..), ClassifierConfig(..), classifierConfigDefault)
 import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>), (^-^))
 
 import Data.Ord (comparing)
