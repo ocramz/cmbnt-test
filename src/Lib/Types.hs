@@ -1,4 +1,13 @@
 {-# language DeriveGeneric #-}
+{-|
+Module      : Lib.Types
+Description : Misc. types used in the library
+Copyright   : (c) Marco Zocca, 2019
+License     : GPL-3
+Maintainer  : zocca.marco gmail
+Stability   : experimental
+Portability : POSIX
+-}
 module Lib.Types where
 
 import GHC.Generics
