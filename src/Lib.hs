@@ -12,9 +12,11 @@ module Lib (
   -- ** Default affine classifier
   classify, classifyBatchWith
   -- *** Preset coefficients
-  , coeffs0, vcoeffs0  
+  , coeffs0, vcoeffs0
+  -- * Training a classifier
+  , train
   -- ** Fisher linear discriminant (FDA)
-  , fisherDiscriminant
+  -- , fisherDiscriminant
   , fda
   -- ** Quadratic discriminant analysis (QDA)
   , qda 
@@ -92,19 +94,29 @@ qda xs x =
   where
     (xs0, xs1) = partitionSamples xs  
 
+-- | Train a classifier
+train ::
+     ClassifierConfig  -- ^ Configuration (training dataset and classifier method)
+  -> (V2 Double -> Bool) -- ^ Point classifier
+train (ClassifierConfig sxs cty) | cty == FDA = fda sxs
+                                 | otherwise  = qda sxs 
+
 -- | Classify a point according to FDA (Fisher (linear) discriminant analysis)
 --
--- Returns True if w^T x >= 0 where w is the Fisher vector
-fda :: Foldable t => t Sample -> V2 Double -> Bool
-fda xs x = w <.> x >= 0 where
-  w = fisherDiscriminant xs
+-- Returns True if w^T x >= 0 where w is the Fisher (= maximum separation) vector
+--
+-- NB : the query is performed with a "centered" query vector (i.e. the dataset mean is subtracted from the query point).
+fda :: (Functor t, Foldable t) => t Sample -> V2 Double -> Bool
+fda sxs x = w <.> xc >= 0 where
+  w = fisherDiscriminant sxs
+  xc = x ^-^ meanV2 (sampleGetV2 <$> sxs)
 
 -- | Fisher linear discriminant analysis
 --
 -- Returns the direction of maximum separation between the two classes (i.e. the discriminating plane is orthogonal to the result vector)
 fisherDiscriminant :: Foldable t => t Sample -> V2 Double
-fisherDiscriminant xs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
-  (xs0, xs1) = partitionSamples xs
+fisherDiscriminant sxs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
+  (xs0, xs1) = partitionSamples sxs
   (mu0, sig0) = sampleStats xs0
   (mu1, sig1) = sampleStats xs1
 
@@ -128,3 +140,6 @@ partitionSamples :: Foldable t => t Sample -> ([V2 Double], [V2 Double])
 partitionSamples xs = foldr insf ([], []) xs where
   insf (Sample ssx ssy lab) (l, r) | lab       = (mkV2 ssx ssy : l, r)
                                    | otherwise = (l, mkV2 ssx ssy : r)
+
+sampleGetV2 :: Sample -> V2 Double
+sampleGetV2 (Sample vx vy _) = mkV2 vx vy
