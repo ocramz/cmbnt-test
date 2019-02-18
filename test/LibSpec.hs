@@ -17,7 +17,7 @@ spec = do
   describe "Lib" $ do
     it "computes the inner product of two vectors" $ 
       e1 <.> e2 `shouldBe` 0
-    it "correctly classifies provided data" $ do
+    it "correctly classifies provided data with the pre-trained coefficients" $ do
       d <- BS.readFile "data/model.csv"
       let cs = either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeCoeffs d
       classify cs vtest `shouldBe` True
@@ -38,9 +38,9 @@ spec = do
       fda sxs vTestFalse `shouldBe` False
     it "classifies test points with QDA" $ do
       sxs <- samples
-      fst (qda sxs vTestTrue) `shouldBe` True
-      fst (qda sxs vTestTrue1) `shouldBe` True      
-      fst (qda sxs vTestFalse) `shouldBe` False
+      qda sxs vTestTrue `shouldBe` True
+      qda sxs vTestTrue1 `shouldBe` True      
+      qda sxs vTestFalse `shouldBe` False
 
 -- | Load the samples from disk and parse them.
 --

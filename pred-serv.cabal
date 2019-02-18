@@ -38,7 +38,9 @@ executable pred-serv
                      , aeson
                      , bytestring
                      , http-types
+                     , mtl
                      , scotty
+                     , stm
                      , text
                      , vector
                      , warp

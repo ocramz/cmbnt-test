@@ -9,16 +9,19 @@ Portability : POSIX
 -}
 module Lib (
   -- * Classifying data
+  -- ** Default affine classifier
   classify, classifyBatchWith
+  -- *** Preset coefficients
+  , coeffs0, vcoeffs0  
+  -- ** Fisher linear discriminant (FDA)
   , fisherDiscriminant
   , fda
+  -- ** Quadratic discriminant analysis (QDA)
   , qda 
-  -- ** Preset coefficients
-  , coeffs0, vcoeffs0
   -- ** Math
   , (<.>)
   -- * Types
-  , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..)
+  , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierConfig(..), classifierConfigDefault
   -- * Decoding data
   -- ** from CSV 
   , decodeSamples, decodeCoeffs
@@ -26,7 +29,7 @@ module Lib (
   , decodeJSONBatch
   ) where
 
-import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..))
+import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierConfig(..), classifierConfigDefault)
 import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>), (^-^))
 
 import Data.Ord (comparing)
@@ -39,7 +42,7 @@ import qualified Data.Aeson as J (decode)
 import Data.Csv (decode, HasHeader(..))
 
 
--- | Classify a point
+-- | Classify a point with the default affine classifier
 classify :: (Ord a, Num a) => Coeffs a -> V2 a -> Bool
 classify cs v = (betaV <.> v + beta0) > 0 where
   betaV = mkV2 (bx cs) (by cs)
@@ -77,12 +80,17 @@ decodeSamples = decode HasHeader
 
 -- | Classify a point according to QDA (Quadratic discriminant analysis) (with uniform class priors)
 --
--- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the (class index, distance) of the closest cluster.
+-- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the class index (a Boolean, since we restrict to binary classification here) of the closest cluster.
 --
 -- see Friedman 1989
-qda :: Foldable t => t Sample -> V2 Double -> (Bool, Double)
-qda xs x = minimumBy (comparing snd) $ zip [True, False] $ map (`mahalanobisDist` x) [xs0, xs1] where
-  (xs0, xs1) = partitionSamples xs  
+qda :: Foldable t => t Sample -> V2 Double -> Bool
+qda xs x =
+  fst $ 
+  minimumBy (comparing snd) $
+  zip [True, False] $
+  map (`mahalanobisDist` x) [xs0, xs1]
+  where
+    (xs0, xs1) = partitionSamples xs  
 
 -- | Classify a point according to FDA (Fisher (linear) discriminant analysis)
 --
