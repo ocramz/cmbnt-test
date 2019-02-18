@@ -24,6 +24,7 @@ compile-static:
 
 # 3) build and tag the deployment docker image 
 docker-deploy-build:
+	cp data/samples.csv docker/deploy/samples.csv
 	docker build -t ${IMAGE} docker/deploy
 
 # Run the deployment container

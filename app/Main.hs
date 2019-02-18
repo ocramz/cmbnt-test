@@ -25,7 +25,9 @@ import Lib
 import Lib.Math
 
 -- | Command line options
-newtype CLIOpts = CO { coDatasetPath :: String }
+newtype CLIOpts = CO {
+  coDatasetPath :: String  -- ^ Path of the training dataset
+  }
 
 cliOptsParser :: O.Parser CLIOpts
 cliOptsParser = CO <$> O.strOption (
@@ -41,6 +43,14 @@ cliopts :: O.ParserInfo CLIOpts
 cliopts = O.info (cliOptsParser <**> O.helper) (O.fullDesc <> O.progDesc "pred-serv - a little prediction server")
 
 -- | MAIN
+--
+-- 1) Parse command line options
+--
+-- 2) Load samples.csv from specified path
+--
+-- 3) Configure the classifier with default options
+--
+-- 4) Configure the webserver with default options and run the REST application
 main :: IO ()
 main = do
   (CO dpath) <- O.execParser cliopts 
