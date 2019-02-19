@@ -1,5 +1,6 @@
 {-# language DeriveGeneric #-}
 {-# language FlexibleInstances #-}
+{-# language OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-|
 Module      : Lib.Math
@@ -21,18 +22,19 @@ module Lib.Math (
   -- * Matrix-vector operations
   (#>), 
   -- ** Solving linear systems
-  (<\>) 
+  (<\>), 
+  -- * Utilities
+  v2x, v2y
   )where
 
 import GHC.Generics
 import qualified Data.Aeson as J (FromJSON(..), ToJSON(..))
-import Data.Csv (FromField(..), FromRecord(..), (.!))
-
--- import Data.Monoid (Sum(..), Product(..))
+import Data.Csv (FromField(..), FromRecord(..), ToField(..), ToRecord(..), (.!))
 
 
 -- | Vector in 2d
 data V2 a = V2 a a deriving (Eq, Show, Generic)
+instance ToField a => ToRecord (V2 a)
 instance FromField a => FromRecord (V2 a) where
   parseRecord v = V2 <$> v .! 0 <*> v .! 1
 instance J.FromJSON a => J.FromJSON (V2 a)
@@ -53,6 +55,11 @@ normalize2 v = scaleV2 (recip z) v where z = norm2 v
 -- | Construct a 2D vector from its components
 mkV2 :: a -> a -> V2 a
 mkV2 = V2
+
+-- | Access the components of a V2
+v2x, v2y :: V2 a -> a
+v2x (V2 x _) = x
+v2y (V2 _ y) = y
 
 -- | Outer product of two vectors
 (<^>) :: Num a => V2 a -> V2 a -> Mat2 a

@@ -19,7 +19,7 @@ import Network.Wai.Handler.Warp (defaultSettings)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import Network.HTTP.Types.Status (status200)
 
-import qualified Data.Vector as V
+-- import qualified Data.Vector as V
 
 import Lib
 import Lib.Math
@@ -59,13 +59,7 @@ main = do
   let sopts = Options 0 defaultSettings
   scottyOptsT sopts (runApp c0) application
 
--- | Load and parse the training samples from disk.
---
--- If the parse fails, the initial configuration will be empty
-samples :: String -> IO [Sample]
-samples dpath = do
-  ss <- BS.readFile dpath 
-  pure $ V.toList $ either (const V.empty) id $ decodeSamples ss  
+
 
 application :: ScottyT T.Text App ()
 application = do
@@ -154,8 +148,6 @@ classifyBatchDefault = post "/model/v1/batch" $ do
   js <- jsonData
   let rs = classifyBatchWith clf0 js
   json rs
-
-
 
 
 

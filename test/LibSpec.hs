@@ -3,7 +3,6 @@ module LibSpec where
 import Test.Hspec
 
 import qualified Data.ByteString.Lazy as BS
-import qualified Data.Vector as V
 
 import Lib
 import Lib.Math
@@ -20,9 +19,8 @@ spec = do
       let cs = decodeCoeffs d
       cs `shouldBe` Right Coeffs {bx = 1.155907258055184, by = -5.539862591450627, b0 = 0.8093445925050581}
     it "decodes data/samples.csv" $ do
-      d <- BS.readFile "data/samples.csv"
-      let sxs = decodeSamples d
-      V.length <$> sxs `shouldBe` Right 10
+      sxs <- samples "data/samples.csv"
+      length sxs `shouldBe` 10
   describe "Lib/Math" $ do
     it "computes the inner product of two vectors" $ 
       e1 <.> e2 `shouldBe` 0    
@@ -41,32 +39,20 @@ spec = do
           x = mcov <\> b
       (mcov #> x) =~= b `shouldBe` True
   describe "Lib" $ do
-    it "correctly classifies provided data with the pre-trained coefficients" $ do
+    it "classifies provided data with the pre-trained linear classifier" $ do
       d <- BS.readFile "data/model.csv"
       let cs = either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeCoeffs d
       classify cs vtest `shouldBe` True    
     it "classifies test points with the Fisher linear discriminant" $ do
-      sxs <- samples
+      sxs <- samples "data/samples.csv"
       fda sxs vTestTrue `shouldBe` True
       fda sxs vTestTrue1 `shouldBe` True      
       fda sxs vTestFalse `shouldBe` False
     it "classifies test points with QDA" $ do
-      sxs <- samples
+      sxs <- samples "data/samples.csv"
       qda sxs vTestTrue `shouldBe` True
       qda sxs vTestTrue1 `shouldBe` True      
       qda sxs vTestFalse `shouldBe` False
-
--- | Load the samples from disk and parse them.
---
--- Crash if the samples file is not found or cannot be parsed
-samples :: IO (V.Vector Sample)
-samples = do
-  d <- BS.readFile "data/samples.csv"
-  pure $ either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeSamples d
-
-
-
-
 
 
  

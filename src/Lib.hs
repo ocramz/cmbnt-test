@@ -19,10 +19,10 @@ module Lib (
   , fda
   -- ** Quadratic discriminant analysis (QDA)
   , qda 
-  -- ** Math
-  , (<.>)
   -- * Types
   , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierMethod(..), ClassifierConfig(..), classifierConfigDefault
+  -- * Loading data
+  , samples
   -- * Decoding data
   -- ** from CSV 
   , decodeSamples, decodeCoeffs
@@ -78,20 +78,6 @@ decodeSamples = decode HasHeader
 
 -- * Classification utilities
 
--- | Classify a point according to QDA (Quadratic discriminant analysis) (with uniform class priors)
---
--- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the class index (a Boolean, since we restrict to binary classification here) of the closest cluster.
---
--- see J. H. Friedman, Regularized discriminant analysis, 1989
-qda :: Foldable t => t Sample -> V2 Double -> Bool
-qda xs x =
-  fst $ 
-  minimumBy (comparing snd) $
-  zip [True, False] $
-  map (`discriminantF` x) [xs0, xs1]
-  where
-    (xs0, xs1) = partitionSamples xs  
-
 -- | Train a classifier
 train ::
      ClassifierConfig  -- ^ Configuration (training dataset and classifier method)
@@ -117,11 +103,26 @@ fisherV sxs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
   (mu0, sig0) = sampleStats xs0
   (mu1, sig1) = sampleStats xs1
 
+-- | Classify a point according to QDA (Quadratic discriminant analysis) (with uniform class priors)
+--
+-- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the class index (a Boolean, since we restrict to binary classification here) of the closest cluster.
+--
+-- see J. H. Friedman, Regularized discriminant analysis, 1989
+qda :: Foldable t => t Sample -> V2 Double -> Bool
+qda xs x =
+  fst $ 
+  minimumBy (comparing snd) $
+  zip [True, False] $
+  map (`discriminantQDA` x) [xs0, xs1]
+  where
+    (xs0, xs1) = partitionSamples xs  
+
+
 -- | Discriminant function used in QDA
 --
 -- Internally computes the Mahalanobis distance (squared) between x and the mean vector of the dataset, as measured by the dataset covariance.
-discriminantF :: (Floating a, Foldable t) => t (V2 a) -> V2 a -> a
-discriminantF xs x = mahd + log (detMat2 sig)
+discriminantQDA :: (Floating a, Foldable t) => t (V2 a) -> V2 a -> a
+discriminantQDA xs x = mahd + log (detMat2 sig)
   where
     mahd = xc <.> (sig <\> xc)
     (mu, sig) = sampleStats xs
@@ -138,9 +139,20 @@ sampleStats xs = (mu, sig) where
 --
 -- If the label is True, a point goes in the left partition
 partitionSamples :: Foldable t => t Sample -> ([V2 Double], [V2 Double])
-partitionSamples xs = foldr insf ([], []) xs where
+partitionSamples = foldr insf ([], []) where
   insf (Sample ssx ssy lab) (l, r) | lab       = (mkV2 ssx ssy : l, r)
                                    | otherwise = (l, mkV2 ssx ssy : r)
 
 sampleGetV2 :: Sample -> V2 Double
 sampleGetV2 (Sample vx vy _) = mkV2 vx vy
+
+
+-- | Load and parse the training samples from disk.
+--
+-- If the parse fails, the list will be empty
+samples ::
+     String   -- ^ File path of samples.csv
+  -> IO [Sample]
+samples dpath = do
+  ss <- BS.readFile dpath 
+  pure $ V.toList $ either (const V.empty) id $ decodeSamples ss  
