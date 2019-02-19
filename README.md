@@ -41,7 +41,7 @@ At this point `docker images` will list three new images:
 
     $ docker run -p 3000:3000 -it pred-serv:1.0
 
-will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will not log anything to console, and can be stopped with Control-C (i.e. SIGINT).
+will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will only log the incoming REST calls to console, and can be stopped with Control-C (i.e. SIGINT).
 
 ## REST endpoints
 

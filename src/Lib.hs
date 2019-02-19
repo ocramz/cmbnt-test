@@ -31,7 +31,7 @@ module Lib (
   ) where
 
 import Lib.Types (Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierMethod(..), ClassifierConfig(..), classifierConfigDefault)
-import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, (<\>), (^-^))
+import Lib.Math (V2, Mat2, mkV2, (<.>), meanV2, sampleCovariance, sumMat2, detMat2, (<\>), (^-^))
 
 import Data.Ord (comparing)
 import Data.List (minimumBy)
@@ -82,13 +82,13 @@ decodeSamples = decode HasHeader
 --
 -- This computes the Mahalanobis distance of a test point to each of the training data clusters and returns the class index (a Boolean, since we restrict to binary classification here) of the closest cluster.
 --
--- see Friedman 1989
+-- see J. H. Friedman, Regularized discriminant analysis, 1989
 qda :: Foldable t => t Sample -> V2 Double -> Bool
 qda xs x =
   fst $ 
   minimumBy (comparing snd) $
   zip [True, False] $
-  map (`mahalanobisDist` x) [xs0, xs1]
+  map (`discriminantF` x) [xs0, xs1]
   where
     (xs0, xs1) = partitionSamples xs  
 
@@ -106,23 +106,26 @@ train (ClassifierConfig sxs cty) | cty == FDA = fda sxs
 -- NB : the query is performed with a "centered" query vector (i.e. the dataset mean is subtracted from the query point).
 fda :: (Functor t, Foldable t) => t Sample -> V2 Double -> Bool
 fda sxs x = w <.> xc >= 0 where
-  w = fisherDiscriminant sxs
+  w = fisherV sxs
   xc = x ^-^ meanV2 (sampleGetV2 <$> sxs)
 
--- | Fisher linear discriminant analysis
---
--- Returns the direction of maximum separation between the two classes (i.e. the discriminating plane is orthogonal to the result vector)
-fisherDiscriminant :: Foldable t => t Sample -> V2 Double
-fisherDiscriminant sxs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
+
+-- | Direction of maximum separation between the two classes (i.e. the discriminating plane is orthogonal to the result vector) 
+fisherV :: Foldable t => t Sample -> V2 Double
+fisherV sxs = (sig0 `sumMat2` sig1) <\> (mu0 ^-^ mu1) where
   (xs0, xs1) = partitionSamples sxs
   (mu0, sig0) = sampleStats xs0
   (mu1, sig1) = sampleStats xs1
 
--- | Mahalanobis distance (squared) between x and the mean vector of the dataset, as measured by the dataset covariance
-mahalanobisDist :: (Floating a, Foldable t) => t (V2 a) -> V2 a -> a
-mahalanobisDist xs x = xc <.> (sig <\> xc) where
-  (mu, sig) = sampleStats xs
-  xc = x ^-^ mu
+-- | Discriminant function used in QDA
+--
+-- Internally computes the Mahalanobis distance (squared) between x and the mean vector of the dataset, as measured by the dataset covariance.
+discriminantF :: (Floating a, Foldable t) => t (V2 a) -> V2 a -> a
+discriminantF xs x = mahd + log (detMat2 sig)
+  where
+    mahd = xc <.> (sig <\> xc)
+    (mu, sig) = sampleStats xs
+    xc = x ^-^ mu
 
 -- | Compute mean and covariance matrix of a dataset
 sampleStats :: (Fractional a, Foldable t) => t (V2 a) -> (V2 a, Mat2 a)

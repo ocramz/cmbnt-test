@@ -1,4 +1,5 @@
 {-# language DeriveGeneric #-}
+{-# language FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-|
 Module      : Lib.Math
@@ -12,11 +13,15 @@ Portability : POSIX
 module Lib.Math (
   sampleCovariance, 
   -- * Vectors in 2D
-  V2, mkV2, (<.>), (^+^), (^-^), meanV2, norm2, normalize2, 
+  V2, mkV2, (<.>), (^+^), (^-^), meanV2, norm2, normalize2, (<^>),  
   -- * (2 * 2) matrices
-  Mat2, sumMat2, (##),
+  Mat2(..), trace, frobenius, sumMat2, detMat2, scaleMat2, transpose, (##),
+  (=~=), 
+  chol2, fwdSubst, bwdSubst, 
   -- * Matrix-vector operations
-  (<\>), (#>)
+  (#>), 
+  -- ** Solving linear systems
+  (<\>) 
   )where
 
 import GHC.Generics
@@ -51,7 +56,7 @@ mkV2 = V2
 
 -- | Outer product of two vectors
 (<^>) :: Num a => V2 a -> V2 a -> Mat2 a
-(V2 u1 v1) <^> (V2 u2 v2) = Mat2 a11 a12 a21 a22 where
+(V2 u1 u2) <^> (V2 v1 v2) = Mat2 a11 a12 a21 a22 where
   a11 = u1 * v1
   a12 = u1 * v2
   a21 = u2 * v1
@@ -76,6 +81,18 @@ meanV2 vs = scaleV2 (recip n) $ foldr (^+^) (V2 0 0) vs where
 
 -- | Dense (2 * 2) matrix
 data Mat2 a = Mat2 a a a a deriving (Eq, Show)
+
+-- | Matrix trace
+trace :: Num a => Mat2 a -> a
+trace (Mat2 a11 _ _ a22) = a11 + a22
+
+-- | Frobenius norm of a matrix
+frobenius :: Num a => Mat2 a -> a
+frobenius m = trace (transpose m ## m)
+
+-- | Matrix determinant
+detMat2 :: Num a => Mat2 a -> a
+detMat2 (Mat2 a11 a12 a21 a22) = a11 * a22 - a21 * a12
 
 -- | Elementwise sum of two matrices
 sumMat2 :: Num a => Mat2 a -> Mat2 a -> Mat2 a
@@ -113,7 +130,7 @@ chol2 :: Floating a => Mat2 a -> Mat2 a
 chol2 (Mat2 a11 _ a21 a22) = Mat2 l11 0 l21 l22 where
   l11 = sqrt a11
   l21 = a21 / l11
-  l22 = sqrt a22 / l21
+  l22 = sqrt (a22 - l21 ** 2)
 
 -- | Solve a (2 * 2) /positive definite/ linear system via the Cholesky factorization
 --
@@ -149,3 +166,20 @@ transpose (Mat2 a11 a12 a21 a22) = Mat2 a11 a21 a12 a22
 (#>) :: Num a => Mat2 a -> V2 a -> V2 a
 (Mat2 a11 a12 a21 a22) #> (V2 u v) = V2 (a11 * u + a12 * v) (a21 * u + a22 * v)
 
+
+
+-- | Approximate comparison for floating-point math
+--
+-- This shouldn't be abused because errors accumulate so the precision decreases throughout a computation
+class (Eq a) => Eps a where
+  (=~=) :: a -> a -> Bool
+  (=~=) = (==)
+
+-- | Approximate comparison of two matrices
+--
+-- The Frobenius norm of the difference should be less than the given floating point precision (e.g. 1e-12 for Double)
+instance Eps (Mat2 Double) where
+  mm1 =~= mm2 = frobenius (mm1 `sumMat2` scaleMat2 (- 1) mm2) <= 1e-12
+
+instance Eps (V2 Double) where
+  v1 =~= v2 = norm2 (v1 ^-^ v2) <= 1e-12
