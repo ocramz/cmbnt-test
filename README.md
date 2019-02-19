@@ -116,6 +116,8 @@ The server can also be built and tested as a regular Haskell application (i.e. w
 
     $ stack exec -- pred-serv
 
+(NB: `docker.enable` should be set to `false` for local usage)
+
 This will spin up a webserver at `<localhost>:3000`.
 
 The file path of the default training dataset can also be changed with a command line option, see the help screen :
