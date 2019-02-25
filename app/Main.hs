@@ -1,6 +1,7 @@
 {-# language OverloadedStrings #-}
 {-# language GeneralizedNewtypeDeriving #-}
 {-# language DeriveGeneric #-}
+{-# language RankNTypes #-}
 module Main where
 
 import qualified Data.Text.Lazy as T
@@ -75,7 +76,7 @@ application = do
   trainClassifier
   classifyCurrent
   classifyBatchCurrent
-  plotDistance
+  plot
   -- classifyDefault
   -- classifyBatchDefault
 
@@ -130,8 +131,8 @@ classifyBatchCurrent = post "/model/v2/batch/" $ do
       rs = classifyBatchWith classf js
   json rs
 
-plotDistance :: ScottyT T.Text App () 
-plotDistance = get "/model/v2/plot/:dx:dy:xmin:xmax:ymin:ymax" $ do
+plot :: ScottyT T.Text App () 
+plot = get "/model/v2/plot/:dx:dy:xmin:xmax:ymin:ymax" $ do
   dx <- param "dx"
   dy <- param "dy"
   xmin <- param "xmin"
@@ -140,16 +141,25 @@ plotDistance = get "/model/v2/plot/:dx:dy:xmin:xmax:ymin:ymax" $ do
   ymax <- param "ymax"
   cconf <- app getConfig
   let ds = [V3 (v2x v) (v2y v) (distanceMin cconf v) | v <- datagrid dx dy xmin xmax ymin ymax]
-      vls = heatmap ds
+      sxs = s2v3 `map` clcTrainingSet cconf
+      vls = vegaLiteSpec 400 400 [heatmap ds, scatter sxs]
   html $ renderText $ mkVegaHtml $ A.toJSON vls
 
-heatmap :: [a] -> VLSpec a
-heatmap ds = vegaLiteSpec 400 400 [
-  layer MRect (DataJSON ds) $
-      posEnc X "v3x" Ordinal <>
-      posEnc Y "v3y" Ordinal  <>
-      colourEnc "v3z" Quantitative
-  ]
+s2v3 :: Sample -> V3 Double
+s2v3 s = V3 (sx s) (sy s) l where
+  l | slabel s = 1
+    | otherwise = 0 
+
+heatmap, scatter :: forall a . [a] -> LayerMetadata a
+heatmap ds = layer MRect (DataJSON ds) $
+              posEnc X "v3x" Ordinal <>
+              posEnc Y "v3y" Ordinal  <>
+              colourEnc "v3z" Quantitative
+  
+scatter sxs = layer MPoint (DataJSON sxs) $
+  posEnc X "v3x" Quantitative <>
+  posEnc Y "v3y" Quantitative <>
+  colourEnc "v3z" Nominal
 
 data V3 a = V3 { v3x :: a, v3y ::  a, v3z :: a } deriving (Eq, Show, Generic)
 instance A.ToJSON a => A.ToJSON (V3 a) where
