@@ -47,32 +47,6 @@ will start a HTTP webserver at `${DOCKER_IP}:3000`. The server will only log the
 
 * Liveness : the `/liveness/` endpoint replies with 200 OK if the prediction server is online.
 
-### v1 API
-
-The v1 API uses the default linear classifier with default coefficients.
-
-* The one-shot prediction endpoint is queried via GET query parameters; the `x` and `y` parameters are the query coordinates, e.g. : 
-
-    `/model/v1/one-shot/?x=<point_x>&y=<point_y>`
-
-* The batch endpoint is queried by passing the query points as a JSON object in the body of a POST request:
-
-    `/model/v1/batch/`
-
-Each query point in the batch is represented as a list of floating point numbers, for example:
-
-    POST http://${DOCKER_IP}:3000/model/v1/batch/
-    {
-      "batch": [[1.9747777403969031,0.1703482031671503],
-            [0.2268872897216034,0.9602596319569988],
-            [0.577768094821916,0.8049502627101064]]
-    }
-
-which will return
-
-    {"prediction":[true,false,false]}
-
-NB: since the internal model is restricted to classifying points in 2D, lists that have more or less than 2 elements will cause a parse error.
 
 ### v2 API
 
@@ -98,6 +72,29 @@ Example usage of the training endpoint :
 	],
     "clcClassifier":"QDA"
     }
+
+* The one-shot prediction endpoint is queried via GET query parameters; the `x` and `y` parameters are the query coordinates, e.g. : 
+
+    `/model/v2/one-shot/?x=<point_x>&y=<point_y>`
+
+* The batch endpoint is queried by passing the query points as a JSON object in the body of a POST request:
+
+    `/model/v1/batch/`
+
+Each query point in the batch is represented as a list of floating point numbers, for example:
+
+    POST http://${DOCKER_IP}:3000/model/v2/batch/
+    {
+      "batch": [[1.9747777403969031,0.1703482031671503],
+            [0.2268872897216034,0.9602596319569988],
+            [0.577768094821916,0.8049502627101064]]
+    }
+
+which will return
+
+    {"prediction":[true,false,false]}
+
+NB: since the internal model is restricted to classifying points in 2D, lists that have more or less than 2 elements will cause a parse error.
 
 The current configuration can always be retrieved on the `GET /current-config/` endpoint
 

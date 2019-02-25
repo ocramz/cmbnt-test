@@ -1,11 +1,13 @@
 {-# language OverloadedStrings #-}
 {-# language GeneralizedNewtypeDeriving #-}
+{-# language DeriveGeneric #-}
 module Main where
 
 import qualified Data.Text.Lazy as T
 import qualified Data.ByteString.Lazy as BS
 
 import Control.Applicative (Alternative(..))
+import GHC.Generics
 
 import qualified Options.Applicative as O (Parser, ParserInfo, execParser, info, helper, fullDesc, progDesc, header, strOption, metavar, help, long, short, showDefault, value)
 import Options.Applicative ((<**>))
@@ -19,7 +21,10 @@ import Network.Wai.Handler.Warp (defaultSettings)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import Network.HTTP.Types.Status (status200)
 
--- import qualified Data.Vector as V
+import qualified Data.Aeson as A
+import Lucid (Html(..), renderText)
+import Lucid.VegaLite (mkVegaHtml)
+import RigelViz
 
 import Lib
 import Lib.Math
@@ -64,14 +69,16 @@ main = do
 application :: ScottyT T.Text App ()
 application = do
   middleware logStdoutDev
+  showCurrentConfig  
   liveness
   hello
   trainClassifier
   classifyCurrent
   classifyBatchCurrent
-  classifyDefault
-  classifyBatchDefault
-  showCurrentConfig
+  plotDistance
+  -- classifyDefault
+  -- classifyBatchDefault
+
 
 
 -- | Reply with a JSON containing the current configuration (training dataset and classification method)
@@ -90,7 +97,7 @@ liveness = get "/liveness" $ status status200
 hello :: ScottyT T.Text App ()
 hello = get "/" $ do
   status status200
-  html "<h1>Hello! </h1>"
+  html "<h1>Hello!</h1>"
 
 -- | Configure and train a classifier
 --
@@ -123,31 +130,63 @@ classifyBatchCurrent = post "/model/v2/batch/" $ do
       rs = classifyBatchWith classf js
   json rs
 
--- | Classify a single datum with the default affine classifier, provided as parameters to a GET endpoint
---
--- Uses the default classifier parameters
---
--- @GET /model/v1/one-shot/?x=<x>&y=<y>@
-classifyDefault :: ScottyT T.Text App ()
-classifyDefault = get "/model/v1/one-shot/:x:y" $ do
-  x <- param "x"
-  y <- param "y"
-  let v = mkV2 x y
-      c = clf0 v     
-  text $ T.pack $ show c
+plotDistance :: ScottyT T.Text App () 
+plotDistance = get "/model/v2/plot/:dx:dy:xmin:xmax:ymin:ymax" $ do
+  dx <- param "dx"
+  dy <- param "dy"
+  xmin <- param "xmin"
+  xmax <- param "xmax"
+  ymin <- param "ymin"
+  ymax <- param "ymax"
+  cconf <- app getConfig
+  let ds = [V3 (v2x v) (v2y v) (distanceMin cconf v) | v <- datagrid dx dy xmin xmax ymin ymax]
+      vls = heatmap ds
+  html $ renderText $ mkVegaHtml $ A.toJSON vls
 
--- | Default binary classifier with hardcoded parameters
-clf0 :: V2 Double -> Bool
-clf0 = classify coeffs0
+heatmap :: [a] -> VLSpec a
+heatmap ds = vegaLiteSpec 400 400 [
+  layer MRect (DataJSON ds) $
+      posEnc X "v3x" Ordinal <>
+      posEnc Y "v3y" Ordinal  <>
+      colourEnc "v3z" Quantitative
+  ]
 
--- | Classify a batch of data, encoded in the JSON body of a POST request
---
--- @POST /model/v1/batch/@
-classifyBatchDefault :: ScottyT T.Text App ()
-classifyBatchDefault = post "/model/v1/batch" $ do
-  js <- jsonData
-  let rs = classifyBatchWith clf0 js
-  json rs
+data V3 a = V3 { v3x :: a, v3y ::  a, v3z :: a } deriving (Eq, Show, Generic)
+instance A.ToJSON a => A.ToJSON (V3 a) where
+
+-- | grid of domain points
+datagrid :: (Num a, Enum a) => a -> a -> a -> a -> a -> a -> [V2 a]
+datagrid dx dy xmin xmax ymin ymax = [mkV2 x y | x <- xs, y <- ys] where
+  xs = [xmin, xmin + dx .. xmax - dx]
+  ys = [ymin, ymin + dy .. ymax - dy]
+
+
+
+-- -- | Classify a single datum with the default affine classifier, provided as parameters to a GET endpoint
+-- --
+-- -- Uses the default classifier parameters
+-- --
+-- -- @GET /model/v1/one-shot/?x=<x>&y=<y>@
+-- classifyDefault :: ScottyT T.Text App ()
+-- classifyDefault = get "/model/v1/one-shot/:x:y" $ do
+--   x <- param "x"
+--   y <- param "y"
+--   let v = mkV2 x y
+--       c = clf0 v     
+--   text $ T.pack $ show c
+
+-- -- | Default binary classifier with hardcoded parameters
+-- clf0 :: V2 Double -> Bool
+-- clf0 = classify coeffs0
+
+-- -- | Classify a batch of data, encoded in the JSON body of a POST request
+-- --
+-- -- @POST /model/v1/batch/@
+-- classifyBatchDefault :: ScottyT T.Text App ()
+-- classifyBatchDefault = post "/model/v1/batch" $ do
+--   js <- jsonData
+--   let rs = classifyBatchWith clf0 js
+--   json rs
 
 
 

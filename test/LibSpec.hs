@@ -2,7 +2,7 @@ module LibSpec where
 
 import Test.Hspec
 
-import qualified Data.ByteString.Lazy as BS
+-- import qualified Data.ByteString.Lazy as BS
 
 import Lib
 import Lib.Math
@@ -13,11 +13,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "Lib/Types" $ do 
-    it "decodes data/model.csv" $ do
-      d <- BS.readFile "data/model.csv"
-      let cs = decodeCoeffs d
-      cs `shouldBe` Right Coeffs {bx = 1.155907258055184, by = -5.539862591450627, b0 = 0.8093445925050581}
+  describe "Lib/Types" $ 
     it "decodes data/samples.csv" $ do
       sxs <- samples "data/samples.csv"
       length sxs `shouldBe` 10
@@ -38,12 +34,8 @@ spec = do
       let b = mkV2 1.8 (- 2.3)
           x = mcov <\> b
       (mcov #> x) =~= b `shouldBe` True
-  describe "Lib" $ do
-    it "classifies provided data with the pre-trained linear classifier" $ do
-      d <- BS.readFile "data/model.csv"
-      let cs = either (\e -> error $ unwords ["data/model.csv not found or malformed", e]) id $ decodeCoeffs d
-      classify cs vtest `shouldBe` True    
-    it "classifies test points with the Fisher linear discriminant" $ do
+  describe "Lib" $ do    
+    it "classifies test points with FDA" $ do
       sxs <- samples "data/samples.csv"
       fda sxs vTestTrue `shouldBe` True
       fda sxs vTestTrue1 `shouldBe` True      

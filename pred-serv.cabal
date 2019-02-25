@@ -22,8 +22,8 @@ library
                        Lib.Types
                        Lib.Math
   build-depends:       base >= 4.7 && < 5
-                     , aeson
-                     , cassava
+                     , aeson >= 1.4.2.0
+                     , cassava >= 0.5.1.0
                      , bytestring
                      , text
                      , vector
@@ -35,27 +35,30 @@ executable pred-serv
   main-is:             Main.hs
   build-depends:       base
                      , pred-serv
-                     , aeson
-                     , bytestring
+                     , aeson >= 1.4.2.0
+                     , bytestring                 
                      , http-types
+                     , lucid
+                     , lucid-extras  >= 0.2.2
                      , mtl
                      , optparse-applicative
+                     , rigel-viz >= 0.2
                      , scotty
                      , stm
                      , text
                      , wai-extra
-                     , warp
+                     , warp >= 3.2.25
 
-executable pred-viz
-  default-language:    Haskell2010
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  hs-source-dirs:      analysis
-  main-is:             Main.hs
-  build-depends:       base
-                     , pred-serv
-                     , aeson
-                     , bytestring
-                     , cassava
+-- executable pred-viz
+--   default-language:    Haskell2010
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   hs-source-dirs:      analysis
+--   main-is:             Main.hs
+--   build-depends:       base
+--                      , pred-serv
+--                      , aeson
+--                      , bytestring
+--                      , cassava
 
 test-suite spec
   default-language:    Haskell2010

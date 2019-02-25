@@ -9,16 +9,15 @@ Portability : POSIX
 -}
 module Lib (
   -- * Classifying data
-  -- ** Default affine classifier
-  classify, classifyBatchWith
-  -- *** Preset coefficients
-  , coeffs0, vcoeffs0
+  classifyBatchWith
   -- * Training a classifier
   , train
+  -- * Evaluating a classifier
+  , distanceMin
   -- ** Fisher linear discriminant (FDA)
-  , fda
+  , fda 
   -- ** Quadratic discriminant analysis (QDA)
-  , qda 
+  , qda
   -- * Types
   , V2, Mat2, Coeffs(..), Sample(..), Batch(..), Pred(..), ClassifierMethod(..), ClassifierConfig(..), classifierConfigDefault
   -- * Loading data
@@ -41,11 +40,6 @@ import qualified Data.Aeson as J (decode)
 import Data.Csv (decode, HasHeader(..))
 
 
--- | Classify a point with the default affine classifier
-classify :: (Ord a, Num a) => Coeffs a -> V2 a -> Bool
-classify cs v = (betaV <.> v + beta0) > 0 where
-  betaV = mkV2 (bx cs) (by cs)
-  beta0 = b0 cs
 
 -- | Classify a batch of points with some binary point classifier
 classifyBatchWith :: (V2 a -> Bool) -> Batch a -> Pred
@@ -55,16 +49,6 @@ classifyBatchWith classf bs = Pred $ map classf (batch bs)
 -- | Decode a JSON blob as an array of points to be labeled
 decodeJSONBatch :: BS.ByteString -> Maybe (Batch Double)
 decodeJSONBatch = J.decode 
-
-
--- | Default model coefficients for the default linear classifier
-coeffs0 :: Coeffs Double
-coeffs0 = Coeffs 1.155907258055184 (-5.539862591450627) 0.8093445925050581
-
--- | Default model coefficients for the default linear classifier (as a V2, disregarding the offset)
-vcoeffs0 :: V2 Double
-vcoeffs0 = mkV2 bx' by' where
-  (Coeffs bx' by' _) = coeffs0
 
 
 -- | Decode a CSV document as coefficients (used for debugging)
@@ -85,6 +69,13 @@ train ::
 train (ClassifierConfig sxs cty) | cty == FDA = fda sxs
                                  | otherwise  = qda sxs 
 
+-- | Compute the minimum distance function 
+distanceMin ::
+     ClassifierConfig  -- ^ Configuration (training dataset and classifier method)
+  -> (V2 Double -> Double)  -- ^ Distance function
+distanceMin (ClassifierConfig sxs cty) | cty == FDA = distanceMinFDA sxs
+                                       | otherwise = distanceMinQDA sxs
+
 -- | Classify a point according to FDA (Fisher (linear) discriminant analysis)
 --
 -- Returns True if w^T x >= 0 where w is the Fisher (= maximum separation) vector
@@ -94,6 +85,19 @@ fda :: (Functor t, Foldable t) => t Sample -> V2 Double -> Bool
 fda sxs x = w <.> xc >= 0 where
   w = fisherV sxs
   xc = x ^-^ meanV2 (sampleGetV2 <$> sxs)
+
+distanceMinFDA :: Foldable t =>
+     t Sample
+  -> (V2 Double -> Double)  -- ^ Distance function
+distanceMinFDA sxs x = min (w <.> xc0) (w <.> xc1)
+  where
+    w = fisherV sxs
+    xc0 = x ^-^ mu0
+    xc1 = x ^-^ mu1
+    (xs0, xs1) = partitionSamples sxs
+    (mu0, _) = sampleStats xs0
+    (mu1, _) = sampleStats xs1    
+    
 
 
 -- | Direction of maximum separation between the two classes (i.e. the discriminating plane is orthogonal to the result vector) 
@@ -115,7 +119,15 @@ qda xs x =
   zip [True, False] $
   map (`discriminantQDA` x) [xs0, xs1]
   where
-    (xs0, xs1) = partitionSamples xs  
+    (xs0, xs1) = partitionSamples xs
+
+-- | Minimum class distance
+distanceMinQDA :: Foldable t =>
+     t Sample  -- ^ Training set
+  -> (V2 Double -> Double)  -- ^ Distance function
+distanceMinQDA xs x = min (discriminantQDA xs0 x)( discriminantQDA xs1 x)
+  where
+    (xs0, xs1) = partitionSamples xs
 
 
 -- | Discriminant function used in QDA

@@ -4,10 +4,14 @@ packages:
 - .
 
 docker:
-  enable: true
+  enable: false
   image: ocramz/cmbnt-test-dev
 
-# extra-deps: []
+extra-deps:
+- rigel-viz-0.2.0.0
+- lucid-extras-0.2.2
+- aeson-1.4.2.0
+- containers-0.6.0.1
 
 # flags: {}
 
